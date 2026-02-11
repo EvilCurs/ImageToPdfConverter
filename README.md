@@ -1,4 +1,3 @@
-cat > README.md << EOL
 # Image to PDF Converter
 
 Веб-приложение на ASP.NET Core для конвертации изображений (JPG, PNG) в PDF.
@@ -21,7 +20,7 @@ cat > README.md << EOL
 
 \`\`\`bash
 # Клонировать репозиторий
-git clone https://github.com/ваш-username/ImageToPdfConverter.git
+git clone https://github.com/EvilCurs/ImageToPdfConverter.git
 
 # Перейти в папку проекта
 cd ImageToPdfConverter
