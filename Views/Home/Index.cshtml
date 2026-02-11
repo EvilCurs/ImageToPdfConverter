@@ -1,0 +1,180 @@
+@{
+    ViewData["Title"] = "Конвертер изображений в PDF";
+}
+
+<div class="text-center mb-5">
+    <h1 class="display-4">Image to PDF Converter</h1>
+    <p class="lead">Конвертируйте JPG и PNG в PDF за секунды</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-images me-2"></i>Выберите изображения
+                        </label>
+                        <input type="file" class="form-control" id="images" 
+                               name="images" multiple accept=".jpg,.jpeg,.png" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Поддерживаются JPG, JPEG, PNG. Можно выбрать несколько файлов.
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для превью -->
+                    <div id="previewContainer" class="row g-2 mb-4" style="display: none;"></div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-primary px-5" id="convertBtn" disabled>
+                            <i class="fas fa-file-pdf me-2"></i>Конвертировать в PDF
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Прогресс бар -->
+                <div id="progress" class="mt-4" style="display: none;">
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             style="width: 100%; background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                    </div>
+                    <p class="text-center mt-2 mb-0">Конвертация...</p>
+                </div>
+
+                <!-- Сообщения -->
+                <div id="message" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Дополнительная информация -->
+        <div class="row mt-4 g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bolt fa-2x mb-3" style="color: #667eea;"></i>
+                        <h5 class="card-title">Быстро</h5>
+                        <p class="card-text text-muted">Мгновенная конвертация изображений в PDF</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-2x mb-3" style="color: #667eea;"></i>
+                        <h5 class="card-title">Безопасно</h5>
+                        <p class="card-text text-muted">Файлы не сохраняются на сервере</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-free-code-camp fa-2x mb-3" style="color: #667eea;"></i>
+                        <h5 class="card-title">Бесплатно</h5>
+                        <p class="card-text text-muted">Полностью бесплатный сервис</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Обработка выбора файлов
+        document.getElementById('images').addEventListener('change', function(e) {
+            const previewContainer = document.getElementById('previewContainer');
+            const convertBtn = document.getElementById('convertBtn');
+            const files = e.target.files;
+            
+            if (files.length > 0) {
+                convertBtn.disabled = false;
+                previewContainer.style.display = 'flex';
+                previewContainer.innerHTML = '';
+                
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 col-6 mb-2';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'card h-100';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'card-img-top';
+                        img.style.height = '120px';
+                        img.style.objectFit = 'cover';
+                        
+                        const body = document.createElement('div');
+                        body.className = 'card-body p-2';
+                        body.innerHTML = `<small class="text-muted">${file.name}</small>`;
+                        
+                        card.appendChild(img);
+                        card.appendChild(body);
+                        col.appendChild(card);
+                        previewContainer.appendChild(col);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                convertBtn.disabled = true;
+                previewContainer.style.display = 'none';
+            }
+        });
+
+        // Отправка формы
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const files = document.getElementById('images').files;
+            
+            Array.from(files).forEach(file => {
+                formData.append('images', file);
+            });
+            
+            const btn = document.getElementById('convertBtn');
+            const progress = document.getElementById('progress');
+            const message = document.getElementById('message');
+            
+            btn.disabled = true;
+            progress.style.display = 'block';
+            message.innerHTML = '';
+            
+            try {
+                const response = await fetch('/Home/ConvertToPdf', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'converted.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    message.innerHTML = '<div class="alert alert-success">✅ PDF успешно создан!</div>';
+                } else {
+                    const error = await response.json();
+                    message.innerHTML = `<div class="alert alert-danger">❌ ${error.error || 'Ошибка конвертации'}</div>`;
+                }
+            } catch (error) {
+                message.innerHTML = `<div class="alert alert-danger">❌ ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                progress.style.display = 'none';
+            }
+        });
+    </script>
+}
