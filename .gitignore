@@ -1,0 +1,34 @@
+## .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.swp
+*.pidb
+*.log
+*.DS_Store
+
+## VS Code
+.vscode/
+.vs/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
+
+## NuGet Packages
+packages/
+*.nupkg
+
+## Project files
+*.csproj.user
+*.dbmdl
+*.jfm
+*.pidb
+*.userprefs
+EOL
